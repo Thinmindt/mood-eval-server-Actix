@@ -972,6 +972,7 @@ name = "mood_eval_server"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "chrono",
  "diesel",
  "dotenv",
  "env_logger",
