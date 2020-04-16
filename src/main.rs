@@ -7,7 +7,6 @@ use std::io;
 use std::sync::Arc;
 
 use actix_web::{web, App, Error, HttpResponse, HttpServer};
-use dotenv::dotenv;
 use futures::future::Future;
 use juniper::http::graphiql::graphiql_source;
 use juniper::http::GraphQLRequest;
