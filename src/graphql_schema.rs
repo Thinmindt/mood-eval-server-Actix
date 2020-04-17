@@ -7,8 +7,8 @@ use chrono::NaiveDate;
 use crate::db::PgPool;
 use crate::schema::day_data;
 
-#[derive(Queryable)]
-struct DayData {
+#[derive(Queryable, Copy, Clone)]
+pub struct DayData {
     pub id: i32,
     pub date: NaiveDate,
     pub mood_id: Option<i32>,
@@ -32,6 +32,7 @@ impl DayData {
         self.date
     }
 
+    /// Foreign key to Mood enumeration table
     pub fn mood_id(&self) -> Option<i32> {
         self.mood_id
     }
@@ -81,18 +82,32 @@ pub struct QueryRoot;
 
 #[juniper::object(Context = Context)]
 impl QueryRoot {
+    /// Returns up to 100 day_data objects
     fn days(context: &Context) -> Vec<DayData> {
+        /// Returns 100 days
         use crate::schema::day_data::dsl::*;
-        let connection = context.db.get().unwrap();;
+        let connection = context.db.get().unwrap();
         day_data
             .limit(100)
             .load::<DayData>(&connection)
             .expect("Error loading day data")
     }
 
+    /// Returns a day object for the date given
+    fn get_day_by_date(context: &Context, date: NaiveDate) -> DayData {
+        use crate::schema::day_data::dsl::*;
+        let connection = context.db.get().unwrap();
+        day_data
+            .filter(date.eq(date))
+            .limit(1)
+            .load::<DayData>(&connection)
+            .expect("Error loading day")[0]
+    }
+    
+    /// Return all mood enumerations
     fn mood(context: &Context) -> Vec<Mood> {
         use crate::schema::moods::dsl::*;
-        let connection = context.db.get().unwrap();;
+        let connection = context.db.get().unwrap();
         moods
             .limit(100)
             .load::<Mood>(&connection)
@@ -104,12 +119,33 @@ pub struct MutationRoot;
 
 #[juniper::object(Context = Context)]
 impl MutationRoot {
+    /// Enter DayData or Vec<DayData> for new entries into the database
     fn create_day(context: &Context, data: NewDay) -> DayData {
-        let connection = context.db.get().unwrap();;
+        let connection = context.db.get().unwrap();
         diesel::insert_into(day_data::table)
             .values(&data)
             .get_result(&connection)
             .expect("Error saving new day data")
+    }
+
+    /// Delete the day for the date given. Will not return an error if the date given does not have data associated with it.
+    fn delete_day(context: &Context, delete_date: String) -> String {
+        
+        use crate::schema::day_data::dsl::*;
+
+        let delete_date = NaiveDate::parse_from_str(&delete_date, "%Y-%m-%d");
+        match delete_date {
+            Err(error) => format!("Error parsing date"),
+            Ok(delete_date) => {
+                let connection = context.db.get().unwrap();
+                
+                let result = diesel::delete(day_data.filter(date.eq(delete_date))).execute(&connection);
+                match result {
+                    Ok(size) => format!("Deleted data"),
+                    Err(error) => format!("Error deleting , error = ")
+                }
+            }
+        }
     }
 }
 

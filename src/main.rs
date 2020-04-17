@@ -56,3 +56,17 @@ fn main() -> io::Result<()> {
     .bind("localhost:8080")?
     .run()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_juniper_day_data() {
+        //juniper::execute("mutation")
+    }
+
+    #[test]
+    fn test_juniper_moods() {
+
+    }
+}
