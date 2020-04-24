@@ -27,15 +27,18 @@ mod tests {
         PgConnection::establish(&database_url)
             .expect(&format!("Error connecting to {}", database_url))
     }
+    
     #[test]
     fn test_diesel_day_data() {
         use crate::schema::day_data::dsl::*;
         use crate::graphql_schema::{NewDay, DayData};
+
         let conn = test_establish_connection();
         let new_day = NewDay {
             date: NaiveDate::from_ymd(1990, 02, 05),
             mood_id: Some(1),
         };
+
         conn.test_transaction::<_, Error, _>(|| {
             diesel::insert_into(day_data)
                 .values(&new_day)

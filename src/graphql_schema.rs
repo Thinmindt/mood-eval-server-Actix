@@ -84,7 +84,6 @@ pub struct QueryRoot;
 impl QueryRoot {
     /// Returns up to 100 day_data objects
     fn days(context: &Context) -> Vec<DayData> {
-        /// Returns 100 days
         use crate::schema::day_data::dsl::*;
         let connection = context.db.get().unwrap();
         day_data
@@ -94,11 +93,11 @@ impl QueryRoot {
     }
 
     /// Returns a day object for the date given
-    fn get_day_by_date(context: &Context, date: NaiveDate) -> DayData {
+    fn get_day_by_date(context: &Context, date_passed: NaiveDate) -> DayData {
         use crate::schema::day_data::dsl::*;
         let connection = context.db.get().unwrap();
         day_data
-            .filter(date.eq(date))
+            .filter(date.eq(date_passed))
             .limit(1)
             .load::<DayData>(&connection)
             .expect("Error loading day")[0]
